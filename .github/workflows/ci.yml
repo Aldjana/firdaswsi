@@ -1,43 +1,29 @@
-name: Aldjana Backend CI
+name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
 
   pull_request:
-    branches: ["main"]
-
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: backend
-
     steps:
-      # Récupérer le code du dépôt
-      - name: Checkout du code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Installer Node.js
-      - name: Installer Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
 
-      # Installer les dépendances
-      - name: Installer les dépendances
+      - name: Install dependencies
         run: npm ci
 
-      # Lancer les tests
-      - name: Lancer les tests
+      - name: Run tests
         run: npm test
-
-      # Construire l'image Docker
-      - name: Construire l'image Docker
-        run: docker build -t aldjana-backend .
