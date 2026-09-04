@@ -36,3 +36,7 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t aldjana-backend .
+      - name: Run lint
+        run: npm run lint
+      - name: build
+        run: npm run build
