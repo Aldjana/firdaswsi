@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -9,15 +9,9 @@ on:
     branches:
       - main
 
-  workflow_dispatch:
-
 jobs:
   test:
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: backend
 
     steps:
       - name: Checkout repository
@@ -27,16 +21,34 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Run lint
+        run: npm run lint
+
       - name: Run tests
         run: npm test
 
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build Docker image
         run: docker build -t aldjana-backend .
-      - name: Run lint
-        run: npm run lint
-      - name: build
-        run: npm run build
+
+      - name: Build and push Docker image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: USERNAME/aldjana-backend:latest
